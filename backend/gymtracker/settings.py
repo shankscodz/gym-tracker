@@ -82,12 +82,31 @@ WSGI_APPLICATION = 'gymtracker.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 import dj_database_url
 import os
+import urllib.parse
+
+db_url = os.environ.get('DATABASE_URL')
+if db_url and not db_url.startswith('sqlite:'):
+    try:
+        if '://' in db_url:
+            schema, rest = db_url.split('://', 1)
+            if '@' in rest:
+                creds, host_part = rest.rsplit('@', 1)
+                if ':' in creds:
+                    username, password = creds.split(':', 1)
+                    username_encoded = urllib.parse.quote(username, safe='')
+                    password_encoded = urllib.parse.quote(password, safe='')
+                    db_url = f"{schema}://{username_encoded}:{password_encoded}@{host_part}"
+                else:
+                    username_encoded = urllib.parse.quote(creds, safe='')
+                    db_url = f"{schema}://{username_encoded}@{host_part}"
+    except Exception:
+        pass
 
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600
-    )
+    ) if not db_url else dj_database_url.parse(db_url, conn_max_age=600)
 }
 
 
