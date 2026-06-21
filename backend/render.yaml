@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: gymtracker-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate && python manage.py seed_db
+    startCommand: gunicorn gymtracker.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gymtracker-db
+          property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: gymtracker.settings
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+
+databases:
+  - name: gymtracker-db
+    plan: free
