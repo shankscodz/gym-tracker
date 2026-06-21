@@ -2,6 +2,7 @@ services:
   - type: web
     name: gymtracker-backend
     runtime: python
+    rootDir: backend
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate && python manage.py seed_db
     startCommand: gunicorn gymtracker.wsgi:application
     envVars:
